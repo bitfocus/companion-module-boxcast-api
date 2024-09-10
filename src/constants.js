@@ -13,13 +13,9 @@ module.exports = {
 	CHANNELS: [],
 	BROADCASTS: [],
 
-	CHOICES_CHANNELS: [
-		{ id: undefined, label: 'No Channels Available' },
-	],
+	CHOICES_CHANNELS: [{ id: undefined, label: 'No Channels Available' }],
 
-	CHOICES_BROADCASTS: [
-		{ id: undefined, label: 'No Broadcasts Available' },
-	],
+	CHOICES_BROADCASTS: [{ id: undefined, label: 'No Broadcasts Available' }],
 
 	CHOICES_BROADCAST_TIMEFRAME: [
 		{ id: 'future', label: 'Future' },
