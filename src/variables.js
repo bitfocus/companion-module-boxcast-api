@@ -39,17 +39,16 @@ module.exports = {
 			variableObj.filterByChannel = self.config.filter_by_channel
 
 			//get currentbroadcast by id and set vars
-			let currentBroadcast = self.getBroadcast(self.CURRENT_BROADCAST_ID);
+			let currentBroadcast = self.getBroadcast(self.CURRENT_BROADCAST_ID)
 
 			if (currentBroadcast) {
 				variableObj.currentBroadcastName = currentBroadcast.name
-				
+
 				let broadcastChannelObj = self.getChannel(currentBroadcast.channel_id)
 
 				if (broadcastChannelObj) {
 					variableObj.currentBroadcastChannelName = broadcastChannelObj.name
-				}
-				else {
+				} else {
 					variableObj.currentBroadcastChannelName = ''
 				}
 
@@ -57,23 +56,22 @@ module.exports = {
 				variableObj.currentBroadcastBoxcasterName = currentBroadcast.boxcaster_name
 				variableObj.currentBroadcastAudioSource = currentBroadcast.audio_source
 				variableObj.currentBroadcastStartTime = currentBroadcast.starts_at
-				variableObj.currentBroadcastStopTime = currentBroadcast.ends_at
+				variableObj.currentBroadcastStopTime = currentBroadcast.stops_at
 				variableObj.currentBroadcastIsPrivate = currentBroadcast.is_private
 				variableObj.currentBroadcastTimeframe = currentBroadcast.timeframe
 			}
 
 			//get nextbroadcast by id and set vars
-			let nextBroadcast = self.getBroadcast(self.NEXT_BROADCAST_ID);
+			let nextBroadcast = self.getBroadcast(self.NEXT_BROADCAST_ID)
 
 			if (nextBroadcast) {
 				variableObj.nextBroadcastName = nextBroadcast.name
-				
+
 				let broadcastChannelObj = self.getChannel(nextBroadcast.channel_id)
 
 				if (broadcastChannelObj) {
 					variableObj.nextBroadcastChannelName = broadcastChannelObj.name
-				}
-				else {
+				} else {
 					variableObj.nextBroadcastChannelName = ''
 				}
 
