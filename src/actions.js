@@ -3,18 +3,10 @@ module.exports = {
 		let self = this
 		let actions = {}
 
-		actions.selectNextBroadcast = {
-			name: 'Select Next Broadcast',
-			description: 'Select the Next Broadcast based on the current date/time and moves it into the Current Broadcast slot.',
+		actions.startCurrentBroadcast = {
+			name: 'Start Current Broadcast',
 			callback: function (action) {
-				self.selectNextBroadcast()
-			},
-		}
-
-		actions.startNextBroadcast = {
-			name: 'Start Next Broadcast',
-			callback: function (action) {
-				self.startNextBroadcast()
+				self.startCurrentBroadcast()
 			},
 		}
 
@@ -22,6 +14,14 @@ module.exports = {
 			name: 'Stop Current Broadcast',
 			callback: function (action) {
 				self.stopCurrentBroadcast()
+			},
+		}
+
+		actions.selectNextBroadcast = {
+			name: 'Select Next Broadcast',
+			description: 'Select the Next Broadcast and moves it into the Current Broadcast slot.',
+			callback: function (action) {
+				self.selectNextBroadcast()
 			},
 		}
 
@@ -85,7 +85,7 @@ module.exports = {
 				self.config.filter_channels = false
 				self.config.channel_id = undefined
 				self.saveConfig(self.config)
-				
+
 				self.getBroadcasts()
 			},
 		}
