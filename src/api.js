@@ -31,9 +31,9 @@ module.exports = {
 			self.RECONNECT_INTERVAL = undefined
 		}
 
-		self.log('info', 'Attempting to reconnect in 30 seconds...')
+		self.log('info', `Attempting to reconnect in ${self.RECONNECT_TIME / 1000} seconds...`)
 
-		self.RECONNECT_INTERVAL = setTimeout(self.initConnection.bind(this), 30000)
+		self.RECONNECT_INTERVAL = setTimeout(self.initConnection.bind(this), self.RECONNECT_TIME)
 	},
 
 	startInterval: function () {
@@ -41,7 +41,7 @@ module.exports = {
 
 		if (self.config.polling) {
 			if (self.config.pollingrate === undefined) {
-				self.config.pollingrate = 1000
+				self.config.pollingrate = self.POLLINGRATE
 			}
 
 			self.log(
@@ -83,7 +83,7 @@ module.exports = {
 
 					self.HEADERS = {
 						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${self.TOKEN}`,
+						Authorization: `Bearer ${self.TOKEN}`,
 					}
 
 					self.log('info', `Logged in to Boxcast API.`)
@@ -112,11 +112,11 @@ module.exports = {
 
 		if (self.config.verbose) {
 			self.log('debug', 'Getting Data...')
-		}		
+		}
 
 		self.getChannels()
 
-		if ((self.config.filter_by_channel === true)) {
+		if (self.config.filter_by_channel === true) {
 			self.filterBroadcastsByChannel(self.config.channel_id)
 		} else {
 			self.getBroadcasts()
@@ -158,10 +158,15 @@ module.exports = {
 				self.log('debug', 'Getting Broadcasts...')
 			}
 
-			const request = await fetch(`${self.BASEURL}/account/broadcasts?q=timeframe:future`, {
-				method: 'GET',
-				headers: self.HEADERS,
-			})
+			let numBroadcasts = self.config.numBroadcasts || 5
+
+			const request = await fetch(
+				`${self.BASEURL}/account/broadcasts?s=starts_at&l=${numBroadcasts}&q=timeframe:current%20timeframe:preroll timeframe:future`,
+				{
+					method: 'GET',
+					headers: self.HEADERS,
+				}
+			)
 
 			let result = await request.json()
 
@@ -192,7 +197,7 @@ module.exports = {
 			self.log('debug', 'Building Channel Choices...')
 		}
 
-		console.log(data)
+		//console.log(data)
 
 		self.CHANNELS = data
 
@@ -201,8 +206,7 @@ module.exports = {
 		if (self.CHANNELS.length === 0) {
 			self.log('warn', 'No Channels found.')
 			self.CHOICES_CHANNELS.push({ id: undefined, label: 'No Channels Available' })
-		}
-		else {
+		} else {
 			self.CHANNELS.forEach((channel) => {
 				self.CHOICES_CHANNELS.push({ id: channel.id, label: channel.name })
 			})
@@ -231,7 +235,7 @@ module.exports = {
 			self.log('debug', 'Building Broadcast Choices...')
 		}
 
-		console.log(data)
+		//console.log(data)
 
 		self.BROADCASTS = data
 
@@ -240,20 +244,19 @@ module.exports = {
 		if (self.BROADCASTS.length === 0) {
 			self.log('warn', 'No Broadcasts found.')
 			self.CHOICES_BROADCASTS.push({ id: undefined, label: 'No Broadcasts Available' })
-		}
-		else {
+		} else {
 			self.BROADCASTS.forEach((broadcast) => {
 				self.CHOICES_BROADCASTS.push({ id: broadcast.id, label: broadcast.name })
 			})
 		}
-		
+
 		self.initActions()
 
 		self.checkFeedbacks()
 		self.checkVariables()
 	},
 
-	checkCurrentBroadcast() {
+	async checkCurrentBroadcast() {
 		let self = this
 
 		//checks to see if the current broadcast timeframe is 'past'
@@ -264,44 +267,63 @@ module.exports = {
 		}
 
 		if (self.CURRENT_BROADCAST_ID) {
-			if (self.config.autoSelectBroadcastDateTime == true) {
-				let currentBroadcast = self.getBroadcast(self.CURRENT_BROADCAST_ID)
+			const request = await fetch(`${self.BASEURL}/account/broadcasts?q=id:${self.CURRENT_BROADCAST_ID}`, {
+				method: 'GET',
+				headers: self.HEADERS,
+			})
 
-				if (currentBroadcast) {
-					if (currentBroadcast.timeframe === 'past') {
-						self.selectNextBroadcast()
-						self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
-						self.selectNextBroadcast()
+			let result = await request.json()
 
-						self.checkFeedbacks()
-						self.checkVariables()
-					}
+			if (result) {
+				let currentBroadcast = result[0]
+
+				if (currentBroadcast.timeframe === 'past') {
+					self.selectNextBroadcast()
+					self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
+					self.selectNextBroadcast()
 				}
+
+				//go ahead and select next broadcast also
+				self.selectNextBroadcast()
 			}
-		}
-		else {
+		} else {
 			self.selectNextBroadcast()
 			self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
 			self.selectNextBroadcast()
-
-			self.checkFeedbacks()
-			self.checkVariables()
 		}
+
+		self.checkFeedbacks()
+		self.checkVariables()
 	},
 
 	selectNextBroadcast() {
 		//get the next broadcast in self.BROADCASTS based on starts_at property
 		let self = this
 
-		let now = new Date()
+		let nextBroadcast = undefined
 
-		let nextBroadcast = self.BROADCASTS.find((broadcast) => {
-			let startsAt = new Date(broadcast.starts_at)
-			return startsAt > now && broadcast.id !== self.CURRENT_BROADCAST_ID
-		})
+		//the broadcasts are sorted in order, so just loop through them until we find the one that isnt the current broadcast id
+		for (let i = 0; i < self.BROADCASTS.length; i++) {
+			let broadcast = self.BROADCASTS[i]
+
+			if (broadcast.id !== self.CURRENT_BROADCAST_ID && broadcast.timeframe !== 'past') {
+				nextBroadcast = broadcast
+				break
+			}
+		}
 
 		if (nextBroadcast) {
 			self.NEXT_BROADCAST_ID = nextBroadcast.id
+		} else {
+			self.NEXT_BROADCAST_ID = undefined
+		}
+	},
+
+	startCurrentBroadcast() {
+		let self = this
+
+		if (self.CURRENT_BROADCAST_ID) {
+			self.startBroadcast(self.CURRENT_BROADCAST_ID)
 		}
 	},
 
@@ -344,24 +366,23 @@ module.exports = {
 					method: 'PUT',
 					headers: self.HEADERS,
 					body: JSON.stringify({
-						starts_at: 'NOW',
+						starts_at: 'now',
 					}),
 				})
-	
+
 				let result = await request.json()
-	
+
 				if (result) {
 					//assume it did the thing
 					//update feedbacks and vars
+					console.log(result)
 				} else {
 					self.log('error', 'Error getting broadcasts.')
 				}
 			} catch (error) {
-				self.log('error', `Error logging in: ${String(error)}`)
-				self.startReconnectInterval()
+				self.log('error', `Error getting broadcasts: ${String(error)}`)
 			}
-		}
-		else {
+		} else {
 			self.log('error', `Broadcast not found: ${broadcastId}`)
 			return
 		}
@@ -382,12 +403,12 @@ module.exports = {
 					method: 'PUT',
 					headers: self.HEADERS,
 					body: JSON.stringify({
-						stops_at: 'NOW',
+						stops_at: 'now',
 					}),
 				})
-	
+
 				let result = await request.json()
-	
+
 				if (result) {
 					//assume it did the thing
 					//update feedbacks and vars
@@ -395,8 +416,7 @@ module.exports = {
 					self.log('error', 'Error getting broadcasts.')
 				}
 			} catch (error) {
-				self.log('error', `Error logging in: ${String(error)}`)
-				self.startReconnectInterval()
+				self.log('error', `Error stopping broadcast: ${String(error)}`)
 			}
 		}
 	},
@@ -412,13 +432,12 @@ module.exports = {
 			self.config.filter_by_channel = true
 			self.config.channel_id = channelId
 			self.saveConfig(self.config)
-		}
-		else {
+		} else {
 			self.log('info', `Filtering broadcasts by Channel: ${channelId}`)
 		}
 
 		try {
-			const request = await fetch(`${self.BASEURL}/account/channels/${channelId}/broadcasts?q=timeframe:future`, {
+			const request = await fetch(`${self.BASEURL}/account/channels/${channelId}/broadcasts`, {
 				method: 'GET',
 				headers: self.HEADERS,
 			})
@@ -445,5 +464,5 @@ module.exports = {
 		let self = this
 
 		return self.BROADCASTS.find((broadcast) => broadcast.id === broadcastId)
-	}
+	},
 }
