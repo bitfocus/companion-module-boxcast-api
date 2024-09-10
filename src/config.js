@@ -42,20 +42,6 @@ module.exports = {
 			},
 			{
 				type: 'checkbox',
-				id: 'autoSelectBroadcastDateTime',
-				label: 'Auto-select Current Broadcast based on current date/time and broadcast state.',
-				width: 4,
-				default: true,
-			},
-			{
-				type: 'static-text',
-				id: 'autoSelectBroadcastDateTimeInfo',
-				width: 8,
-				label: ' ',
-				value: 'Auto-selecting the next Broadcast based on current date/time',
-			},
-			{
-				type: 'checkbox',
 				id: 'autoSelectBroadcastAfterStop',
 				label: 'Auto-select next Broadcast after stopping the current one.',
 				width: 4,
@@ -66,7 +52,7 @@ module.exports = {
 				id: 'autoSelectBroadcastAfterStopInfo',
 				width: 8,
 				label: ' ',
-				value: 'Moves the Next Broadcast into Current Broadcast, and assigns the next one as the Next Broadcast.',
+				value: 'Moves the Next Broadcast into Current Broadcast, and assigns the one after that one as the Next Broadcast.',
 			},
 			{
 				type: 'static-text',
