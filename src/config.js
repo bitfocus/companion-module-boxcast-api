@@ -10,7 +10,7 @@ module.exports = {
 				id: 'info',
 				width: 12,
 				label: 'Information',
-				value: 'This modules controls Boxcast through their API.',
+				value: 'This modules controls Boxcast through their API. Read the help file for more information on how to use the module.',
 			},
 			{
 				type: 'static-text',

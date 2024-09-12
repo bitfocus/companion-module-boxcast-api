@@ -12,7 +12,8 @@ This module will allow you to control your live streams using the Boxcast API.
 
 -   Start/Stop Current Broadcast
 -   Select Next Broadcast
--   Start/Stop Specific Broadcast
+-   Select Specific Broadcast
+-   Start/Stop Selected Broadcast
 -   Filter by Channel
 -   Turn off Filter by Channel
 
@@ -24,7 +25,7 @@ This module will allow you to control your live streams using the Boxcast API.
 ## Variables
 
 -   Filter by Channel is On/Off
--   Current/Next Broadcast:
+-   Current/Next/Selected Broadcast:
     -   Name
     -   Channel Name
     -   Stream Source

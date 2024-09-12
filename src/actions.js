@@ -25,8 +25,9 @@ module.exports = {
 			},
 		}
 
-		actions.startSpecificBroadcast = {
-			name: 'Start Specific Broadcast',
+		actions.selectBroadcast = {
+			name: 'Select Specific Broadcast',
+			desctiprion: 'Select a specific Broadcast and populate variables around it.',
 			options: [
 				{
 					type: 'dropdown',
@@ -38,12 +39,21 @@ module.exports = {
 			],
 			callback: function (action) {
 				let options = action.options
-				self.startBroadcast(options.broadcast)
+				self.SELECTED_BROADCAST_ID = options.broadcast
+				self.checkFeedbacks()
+				self.checkVariables()
 			},
 		}
 
-		actions.stopSpecificBroadcast = {
-			name: 'Stop Specific Broadcast',
+		actions.startSelectedBroadcast = {
+			name: 'Start Selected Broadcast',
+			callback: function (action) {
+				self.startSelectedBroadcast()
+			},
+		}
+
+		actions.stopSelectedBroadcast = {
+			name: 'Stop Selected Broadcast',
 			options: [
 				{
 					type: 'dropdown',
@@ -55,7 +65,7 @@ module.exports = {
 			],
 			callback: function (action) {
 				let options = action.options
-				self.stopBroadcast(options.broadcast)
+				self.stopSelectedBroadcast(options.broadcast)
 			},
 		}
 

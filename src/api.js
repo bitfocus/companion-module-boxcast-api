@@ -123,6 +123,7 @@ module.exports = {
 		}
 
 		self.checkCurrentBroadcast()
+		self.checkSelectedBroadcast()
 	},
 
 	async getChannels() {
@@ -186,36 +187,40 @@ module.exports = {
 		//compare the data to self.CHANNELS and only update if different
 		//this is to prevent feedbacks from updating if the data is the same
 
-		if (JSON.stringify(self.CHANNELS) === JSON.stringify(data)) {
-			if (self.config.verbose) {
-				self.log('debug', 'No change in Channel Data.')
+		try {
+			if (JSON.stringify(self.CHANNELS) === JSON.stringify(data)) {
+				if (self.config.verbose) {
+					self.log('debug', 'No change in Channel Data.')
+				}
+				return
 			}
-			return
+
+			if (self.config.verbose) {
+				self.log('debug', 'Building Channel Choices...')
+			}
+
+			//console.log(data)
+
+			self.CHANNELS = data
+
+			self.CHOICES_CHANNELS = []
+
+			if (self.CHANNELS.length === 0) {
+				self.log('warn', 'No Channels found.')
+				self.CHOICES_CHANNELS.push({ id: undefined, label: 'No Channels Available' })
+			} else {
+				self.CHANNELS.forEach((channel) => {
+					self.CHOICES_CHANNELS.push({ id: channel.id, label: channel.name })
+				})
+			}
+
+			self.initActions()
+
+			self.checkFeedbacks()
+			self.checkVariables()
+		} catch (error) {
+			self.log('error', `Error building channel choices: ${String(error)}`)
 		}
-
-		if (self.config.verbose) {
-			self.log('debug', 'Building Channel Choices...')
-		}
-
-		//console.log(data)
-
-		self.CHANNELS = data
-
-		self.CHOICES_CHANNELS = []
-
-		if (self.CHANNELS.length === 0) {
-			self.log('warn', 'No Channels found.')
-			self.CHOICES_CHANNELS.push({ id: undefined, label: 'No Channels Available' })
-		} else {
-			self.CHANNELS.forEach((channel) => {
-				self.CHOICES_CHANNELS.push({ id: channel.id, label: channel.name })
-			})
-		}
-
-		self.initActions()
-
-		self.checkFeedbacks()
-		self.checkVariables()
 	},
 
 	buildBroadcastChoices(data) {
@@ -224,36 +229,40 @@ module.exports = {
 		//compare the data to self.BROADCASTS and only update if different
 		//this is to prevent feedbacks from updating if the data is the same
 
-		if (JSON.stringify(self.BROADCASTS) === JSON.stringify(data)) {
-			if (self.config.verbose) {
-				self.log('debug', 'No change in Broadcast Data.')
+		try {
+			if (JSON.stringify(self.BROADCASTS) === JSON.stringify(data)) {
+				if (self.config.verbose) {
+					self.log('debug', 'No change in Broadcast Data.')
+				}
+				return
 			}
-			return
+
+			if (self.config.verbose) {
+				self.log('debug', 'Building Broadcast Choices...')
+			}
+
+			//console.log(data)
+
+			self.BROADCASTS = data
+
+			self.CHOICES_BROADCASTS = []
+
+			if (self.BROADCASTS.length === 0) {
+				self.log('warn', 'No Broadcasts found.')
+				self.CHOICES_BROADCASTS.push({ id: undefined, label: 'No Broadcasts Available' })
+			} else {
+				self.BROADCASTS.forEach((broadcast) => {
+					self.CHOICES_BROADCASTS.push({ id: broadcast.id, label: broadcast.name })
+				})
+			}
+
+			self.initActions()
+
+			self.checkFeedbacks()
+			self.checkVariables()
+		} catch (error) {
+			self.log('error', `Error building broadcast choices: ${String(error)}`)
 		}
-
-		if (self.config.verbose) {
-			self.log('debug', 'Building Broadcast Choices...')
-		}
-
-		//console.log(data)
-
-		self.BROADCASTS = data
-
-		self.CHOICES_BROADCASTS = []
-
-		if (self.BROADCASTS.length === 0) {
-			self.log('warn', 'No Broadcasts found.')
-			self.CHOICES_BROADCASTS.push({ id: undefined, label: 'No Broadcasts Available' })
-		} else {
-			self.BROADCASTS.forEach((broadcast) => {
-				self.CHOICES_BROADCASTS.push({ id: broadcast.id, label: broadcast.name })
-			})
-		}
-
-		self.initActions()
-
-		self.checkFeedbacks()
-		self.checkVariables()
 	},
 
 	async checkCurrentBroadcast() {
@@ -266,56 +275,102 @@ module.exports = {
 			self.log('debug', 'Checking Current Broadcast...')
 		}
 
-		if (self.CURRENT_BROADCAST_ID) {
-			const request = await fetch(`${self.BASEURL}/account/broadcasts?q=id:${self.CURRENT_BROADCAST_ID}`, {
-				method: 'GET',
-				headers: self.HEADERS,
-			})
+		try {
+			if (self.CURRENT_BROADCAST_ID) {
+				const request = await fetch(`${self.BASEURL}/account/broadcasts?q=id:${self.CURRENT_BROADCAST_ID}`, {
+					method: 'GET',
+					headers: self.HEADERS,
+				})
 
-			let result = await request.json()
+				let result = await request.json()
 
-			if (result) {
-				let currentBroadcast = result[0]
+				if (result) {
+					let currentBroadcast = result[0]
 
-				if (currentBroadcast.timeframe === 'past') {
-					self.selectNextBroadcast()
-					self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
+					if (currentBroadcast.timeframe === 'past') {
+						self.selectNextBroadcast()
+						self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
+						self.selectNextBroadcast()
+					}
+
+					//go ahead and select next broadcast also
 					self.selectNextBroadcast()
 				}
-
-				//go ahead and select next broadcast also
+			} else {
+				self.selectNextBroadcast()
+				self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
 				self.selectNextBroadcast()
 			}
-		} else {
-			self.selectNextBroadcast()
-			self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
-			self.selectNextBroadcast()
+
+			self.checkFeedbacks()
+			self.checkVariables()
+		} catch (error) {
+			self.log('error', `Error checking current broadcast: ${String(error)}`)
+		}
+	},
+
+	async checkSelectedBroadcast() {
+		let self = this
+
+		//checks to see if the selected broadcast timeframe is 'past'
+		//this signifies that the selected broadcast has ended, and we should move on to the next one
+
+		if (self.config.verbose) {
+			self.log('debug', 'Checking Selected Broadcast...')
 		}
 
-		self.checkFeedbacks()
-		self.checkVariables()
+		try {
+			if (self.SELECTED_BROADCAST_ID) {
+				const request = await fetch(`${self.BASEURL}/account/broadcasts?q=id:${self.SELECTED_BROADCAST_ID}`, {
+					method: 'GET',
+					headers: self.HEADERS,
+				})
+
+				let result = await request.json()
+
+				if (result) {
+					let selectedBroadcast = result[0]
+
+					if (selectedBroadcast.timeframe === 'past') {
+						self.SELECTED_BROADCAST_ID = undefined
+					}
+				}
+			}
+
+			self.checkFeedbacks()
+			self.checkVariables()
+		} catch (error) {
+			self.log('error', `Error checking selected broadcast: ${String(error)}`)
+		}
 	},
 
 	selectNextBroadcast() {
 		//get the next broadcast in self.BROADCASTS based on starts_at property
 		let self = this
 
-		let nextBroadcast = undefined
+		try {
+			let nextBroadcast = undefined
 
-		//the broadcasts are sorted in order, so just loop through them until we find the one that isnt the current broadcast id
-		for (let i = 0; i < self.BROADCASTS.length; i++) {
-			let broadcast = self.BROADCASTS[i]
+			//the broadcasts are sorted in order, so just loop through them until we find the one that isnt the current broadcast id
+			for (let i = 0; i < self.BROADCASTS.length; i++) {
+				let broadcast = self.BROADCASTS[i]
 
-			if (broadcast.id !== self.CURRENT_BROADCAST_ID && broadcast.timeframe !== 'past') {
-				nextBroadcast = broadcast
-				break
+				if (broadcast.id !== self.CURRENT_BROADCAST_ID && broadcast.timeframe !== 'past') {
+					nextBroadcast = broadcast
+					break
+				}
 			}
-		}
 
-		if (nextBroadcast) {
-			self.NEXT_BROADCAST_ID = nextBroadcast.id
-		} else {
-			self.NEXT_BROADCAST_ID = undefined
+			if (nextBroadcast) {
+				self.NEXT_BROADCAST_ID = nextBroadcast.id
+			} else {
+				self.NEXT_BROADCAST_ID = undefined
+			}
+
+			self.checkFeedbacks()
+			self.checkVariables()
+		} catch (error) {
+			self.log('error', `Error selecting next broadcast: ${String(error)}`)
 		}
 	},
 
@@ -324,6 +379,8 @@ module.exports = {
 
 		if (self.CURRENT_BROADCAST_ID) {
 			self.startBroadcast(self.CURRENT_BROADCAST_ID)
+		} else {
+			self.log('error', 'No Current Broadcast Selected.')
 		}
 	},
 
@@ -334,6 +391,18 @@ module.exports = {
 			self.startBroadcast(self.NEXT_BROADCAST_ID)
 			self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
 			self.selectNextBroadcast()
+		} else {
+			self.log('error', 'No Next Broadcast Selected.')
+		}
+	},
+
+	startSelectedBroadcast() {
+		let self = this
+
+		if (self.SELECTED_BROADCAST_ID) {
+			self.startBroadcast(self.SELECTED_BROADCAST_ID)
+		} else {
+			self.log('error', 'No Broadcast Selected.')
 		}
 	},
 
@@ -348,6 +417,19 @@ module.exports = {
 				self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
 				self.selectNextBroadcast()
 			}
+		} else {
+			self.log('error', 'No Current Broadcast Selected.')
+		}
+	},
+
+	stopSelectedBroadcast() {
+		let self = this
+
+		if (self.SELECTED_BROADCAST_ID) {
+			self.stopBroadcast(self.SELECTED_BROADCAST_ID)
+			self.SELECTED_BROADCAST_ID = undefined
+		} else {
+			self.log('error', 'No Broadcast Selected.')
 		}
 	},
 
@@ -357,7 +439,7 @@ module.exports = {
 		let broadcastObj = self.getBroadcast(broadcastId)
 
 		if (broadcastObj) {
-			let broadcastName = broadcastObj.name
+			let broadcastName = broadcastObj.name || broadcastId
 
 			self.log('info', `Starting Broadcast: ${broadcastName}`)
 
@@ -376,6 +458,8 @@ module.exports = {
 					//assume it did the thing
 					//update feedbacks and vars
 					console.log(result)
+					self.checkFeedbacks()
+					self.checkVariables()
 				} else {
 					self.log('error', 'Error getting broadcasts.')
 				}
@@ -394,7 +478,7 @@ module.exports = {
 		let broadcastObj = self.getBroadcast(broadcastId)
 
 		if (broadcastObj) {
-			let broadcastName = broadcastObj.name
+			let broadcastName = broadcastObj.name || broadcastId
 
 			self.log('info', `Stopping Broadcast: ${broadcastName}`)
 
@@ -412,6 +496,9 @@ module.exports = {
 				if (result) {
 					//assume it did the thing
 					//update feedbacks and vars
+					console.log(result)
+					self.checkFeedbacks()
+					self.checkVariables()
 				} else {
 					self.log('error', 'Error getting broadcasts.')
 				}
@@ -427,7 +514,8 @@ module.exports = {
 		let channelObj = self.getChannel(channelId)
 
 		if (channelObj) {
-			self.log('info', `Filtering broadcasts by Channel: ${channelObj.name}`)
+			let channelName = channelObj.name || channelId
+			self.log('info', `Filtering broadcasts by Channel: ${channelName}`)
 
 			self.config.filter_by_channel = true
 			self.config.channel_id = channelId
