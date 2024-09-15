@@ -12,40 +12,6 @@ module.exports = {
 		const colorBlue = combineRgb(0, 0, 255) // Blue
 		const colorYellow = combineRgb(255, 255, 0) // Yellow
 
-		presets = [
-			{
-				category: 'General',
-				name: 'Set Converter Mode to Encoder',
-				style: {
-					text: 'Encoder',
-					size: '18',
-					color: colorWhite,
-					bgcolor: colorBlack,
-				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'modeSwitch',
-								options: {
-									mode: 'encoder',
-								},
-							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [
-					{
-						feedbackId: 'mode',
-						options: {
-							mode: 'encoder',
-						},
-					},
-				],
-			},
-		]
-
 		presets.currentBroadcast = {
 			category: 'Control',
 			name: 'Start Current Broadcast',

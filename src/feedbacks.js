@@ -74,6 +74,39 @@ module.exports = {
 			},
 		}
 
+		feedbacks.selectedBroadcastTimeFrame = {
+			type: 'boolean',
+			name: 'Selected Broadcast Timeframe',
+			description: 'Change the button color based on the Selected Broadcast Timeframe',
+			defaultStyle: {
+				color: colorWhite,
+				bgcolor: colorRed,
+			},
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Broadcast Timeframe',
+					id: 'timeframe',
+					default: self.CHOICES_BROADCAST_TIMEFRAME[0].id,
+					choices: self.CHOICES_BROADCAST_TIMEFRAME,
+				},
+			],
+			callback: function (feedback, bank) {
+				let options = feedback.options
+
+				let broadcastObj = self.getBroadcast(self.SELECTED_BROADCAST_ID)
+
+				if (!broadcastObj) {
+					return false
+				}
+
+				if (options.timeframe == broadcastObj.timeframe) {
+					return true
+				}
+				return false
+			},
+		}
+
 		self.setFeedbackDefinitions(feedbacks)
 	},
 }

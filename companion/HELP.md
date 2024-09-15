@@ -19,8 +19,7 @@ This module will allow you to control your live streams using the Boxcast API.
 
 ## Feedbacks
 
--   Current Broadcast Timeframe
--   Next Broadcast Timeframe
+-   Current/Next/Selected Broadcast Timeframe
 
 ## Variables
 

@@ -275,38 +275,13 @@ module.exports = {
 			self.log('debug', 'Checking Current Broadcast...')
 		}
 
-		try {
-			if (self.CURRENT_BROADCAST_ID) {
-				const request = await fetch(`${self.BASEURL}/account/broadcasts?q=id:${self.CURRENT_BROADCAST_ID}`, {
-					method: 'GET',
-					headers: self.HEADERS,
-				})
+		self.CURRENT_BROADCAST_ID = undefined
+		self.selectNextBroadcast()
+		self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
+		self.selectNextBroadcast()
 
-				let result = await request.json()
-
-				if (result) {
-					let currentBroadcast = result[0]
-
-					if (currentBroadcast.timeframe === 'past') {
-						self.selectNextBroadcast()
-						self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
-						self.selectNextBroadcast()
-					}
-
-					//go ahead and select next broadcast also
-					self.selectNextBroadcast()
-				}
-			} else {
-				self.selectNextBroadcast()
-				self.CURRENT_BROADCAST_ID = self.NEXT_BROADCAST_ID
-				self.selectNextBroadcast()
-			}
-
-			self.checkFeedbacks()
-			self.checkVariables()
-		} catch (error) {
-			self.log('error', `Error checking current broadcast: ${String(error)}`)
-		}
+		self.checkFeedbacks()
+		self.checkVariables()
 	},
 
 	async checkSelectedBroadcast() {
@@ -333,12 +308,13 @@ module.exports = {
 
 					if (selectedBroadcast.timeframe === 'past') {
 						self.SELECTED_BROADCAST_ID = undefined
+						self.log('info', `Selected Broadcast has ended. Please select a new one.`)
 					}
 				}
-			}
 
-			self.checkFeedbacks()
-			self.checkVariables()
+				self.checkFeedbacks()
+				self.checkVariables()
+			}
 		} catch (error) {
 			self.log('error', `Error checking selected broadcast: ${String(error)}`)
 		}
@@ -366,9 +342,6 @@ module.exports = {
 			} else {
 				self.NEXT_BROADCAST_ID = undefined
 			}
-
-			self.checkFeedbacks()
-			self.checkVariables()
 		} catch (error) {
 			self.log('error', `Error selecting next broadcast: ${String(error)}`)
 		}
