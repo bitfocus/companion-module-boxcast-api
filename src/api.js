@@ -199,8 +199,6 @@ module.exports = {
 				self.log('debug', 'Building Channel Choices...')
 			}
 
-			//console.log(data)
-
 			self.CHANNELS = data
 
 			self.CHOICES_CHANNELS = []
@@ -240,8 +238,6 @@ module.exports = {
 			if (self.config.verbose) {
 				self.log('debug', 'Building Broadcast Choices...')
 			}
-
-			//console.log(data)
 
 			self.BROADCASTS = data
 

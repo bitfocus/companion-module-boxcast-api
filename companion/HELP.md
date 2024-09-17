@@ -36,4 +36,4 @@ This module will allow you to control your live streams using the Boxcast API.
 
 ## Presets
 
--   Start Current Broadcast (with presets)
+-   Start Current Broadcast (with feedbacks)
