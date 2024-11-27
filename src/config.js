@@ -41,6 +41,15 @@ module.exports = {
 				value: '<hr />',
 			},
 			{
+				type: 'number',
+				id: 'numBroadcasts',
+				label: 'Number of Broadcasts to Retrieve',
+				width: 3,
+				default: 5,
+				min: 1,
+				max: 100,
+			},
+			{
 				type: 'checkbox',
 				id: 'autoSelectBroadcastAfterStop',
 				label: 'Auto-select next Broadcast after stopping the current one.',
