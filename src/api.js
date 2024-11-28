@@ -162,7 +162,7 @@ module.exports = {
 			let numBroadcasts = self.config.numBroadcasts || 5
 
 			const request = await fetch(
-				`${self.BASEURL}/account/broadcasts?s=starts_at&l=${numBroadcasts}&q=timeframe:current%20timeframe:preroll timeframe:future`,
+				`${self.BASEURL}/account/broadcasts?s=starts_at&l=${numBroadcasts}&q=timeframe:current%20timeframe:preroll%20timeframe:future`,
 				{
 					method: 'GET',
 					headers: self.HEADERS,
@@ -173,6 +173,7 @@ module.exports = {
 
 			if (result) {
 				self.buildBroadcastChoices(result)
+				//self.selectNextBroadcast() //select the next broadcast in case one has been added since the last check that occurs next
 			} else {
 				self.log('error', 'Error getting broadcasts.')
 			}
